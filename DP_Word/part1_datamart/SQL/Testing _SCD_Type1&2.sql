@@ -19,15 +19,10 @@ WHERE terminal_id = 5;
 --Testing SCD Type2
 UPDATE Staging.Customers
 SET 
-    customer_name ='CMA CGM',      -- Type 1 (Overwrite)
-    customer_tier = 'Diamond',     -- Type 2 (New Row)
-    credit_limit = 6000000.00      -- Type 2 (New Row)
-WHERE customer_id = 3;
+	customer_tier = 'Diamond',     
+    credit_limit = 6000000.00     
+WHERE customer_id = 5;
 
-select * from Mart.dim_customer
 select * from Staging.Customers
 
-
-truncate table Staging.Customers
-truncate table Mart.dim_customer
-
+select * from Mart.dim_customer
