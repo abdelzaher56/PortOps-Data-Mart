@@ -1,1 +1,2 @@
 DP_World_PortOps.pbix filter=lfs diff=lfs merge=lfs -text
+DP_Word/part2_powerbi/DP_World_PortOps.pbix filter=lfs diff=lfs merge=lfs -text
