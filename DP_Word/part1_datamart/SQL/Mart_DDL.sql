@@ -104,22 +104,58 @@ SET IDENTITY_INSERT Mart.dim_shift OFF;
 GO
 ---------------------------------------------------
 --Facts 
---
+--fact_container_movement
 CREATE TABLE Mart.fact_container_movement (
     MovementSK              INT IDENTITY(1,1) PRIMARY KEY,
-    DateKey                 INT,                    -- гд move_start_time
+	movement_id             BIGINT,
+    container_no            VARCHAR(20),
+    DateKey                 INT,   
+	crane_cycle_seconds     INT,
     CustomerFK              INT,
     TerminalFK              INT,
     EquipmentFK             INT,
     ShiftFK                 INT,
-    movement_id             BIGINT,
-    container_no            VARCHAR(20),
     vessel_call_id          INT,
     move_type               VARCHAR(20),
     container_size          VARCHAR(20),
     is_reefer               BIT,
     weight_tons             DECIMAL(10,2),
-    crane_cycle_seconds     INT,
-    
     LoadDate                DATETIME DEFAULT GETDATE()
 );
+---------------------------------------------
+--fact_vessel_call
+CREATE TABLE Mart.fact_vessel_call (
+    VesselCallSK            INT IDENTITY(1,1) PRIMARY KEY,
+    vessel_call_id          INT,
+    vessel_name             NVARCHAR(100),
+    voyage_no               VARCHAR(20),
+    ArrivalDateFK           INT,           
+    DepartureDateFK         INT,           
+    CustomerFK              INT,
+    TerminalFK              INT,
+    total_moves_planned     INT,
+    total_moves_actual      INT,
+    berth_delay_hours       DECIMAL(10,2),     
+    stay_hours              DECIMAL(10,2),     
+    moves_variance          INT,                
+    LoadDate                DATETIME DEFAULT GETDATE()
+);
+GO
+-------------------------------------------------------
+--fact_gate_transaction
+CREATE TABLE Mart.fact_gate_transaction (
+    GateTransactionSK       INT IDENTITY(1,1) PRIMARY KEY,
+    transaction_id          BIGINT,
+    truck_plate             VARCHAR(20),
+    container_no            VARCHAR(20),
+    GateInDateFK            INT,          
+    GateOutDateFK           INT,          
+    CustomerFK              INT,
+    TerminalFK              INT,
+    ShiftFK                 INT,
+    direction               VARCHAR(10),   
+    turnaround_minutes      INT,           
+    LoadDate                DATETIME DEFAULT GETDATE()
+);
+GO
+
