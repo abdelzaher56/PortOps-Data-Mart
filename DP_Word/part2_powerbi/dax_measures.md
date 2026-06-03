@@ -1,5 +1,7 @@
 # DAX Measures Documentation
 
+**Project:** PortOps Terminal Analytics Dashboard
+
 ---
 
 # Core Measures
@@ -15,9 +17,9 @@ COUNTROWS ( 'Mart fact_container_movement' )
 
 **Business Purpose**
 
-* Primary throughput KPI.
-* Measures terminal operational activity.
-* Used as the base measure for trend and performance analysis.
+* Primary operational throughput KPI.
+* Used to monitor terminal activity and productivity.
+* Serves as a base measure for trend and YoY analysis.
 
 ---
 
@@ -37,8 +39,8 @@ DIVIDE (
 **Business Purpose**
 
 * Measures crane operational efficiency.
-* Helps identify equipment bottlenecks.
-* Lower values indicate better crane performance.
+* Lower values indicate faster handling performance.
+* Helps identify equipment bottlenecks and productivity issues.
 
 ---
 
@@ -54,8 +56,8 @@ COUNTROWS ( 'Mart fact_gate_transaction' )
 **Business Purpose**
 
 * Measures overall gate activity.
-* Tracks truck traffic volume through terminal gates.
-* Supports gate capacity and workload analysis.
+* Used to track truck traffic volume.
+* Supports gate capacity and resource planning.
 
 ---
 
@@ -75,9 +77,9 @@ AVERAGEX (
 
 **Business Purpose**
 
-* Key gate performance KPI.
-* Measures the average time trucks spend inside the terminal.
-* Lower turnaround times indicate more efficient gate operations.
+* Key service-level KPI.
+* Measures gate efficiency from truck entry to exit.
+* Lower turnaround times improve customer satisfaction and reduce congestion.
 
 ---
 
@@ -93,14 +95,14 @@ COUNTROWS ( 'Mart fact_gate_transaction' )
 **Business Purpose**
 
 * Measures inbound truck traffic.
-* Helps monitor gate workload.
-* Used to analyze terminal entry activity.
+* Supports gate workload analysis.
+* Used alongside Gate-Out metrics for flow monitoring.
 
 ---
 
 ## Gate-Outs Count
 
-Counts truck gate-out transactions by activating the relationship between the Gate Out date and the Date Dimension.
+Counts truck gate-out transactions using the inactive Gate Out relationship.
 
 ```DAX
 Gate-Outs Count =
@@ -116,8 +118,138 @@ CALCULATE (
 **Business Purpose**
 
 * Measures outbound truck traffic.
-* Enables reporting based on truck exit dates.
-* Supports gate throughput and performance analysis.
+* Enables accurate reporting based on truck exit date.
+* Supports gate performance and throughput analysis.
+
+---
+
+# Vessel & Operational Performance Measures
+
+## Berth Delay Avg Hours
+
+Calculates the average berth delay duration.
+
+```DAX
+Berth Delay Avg Hours =
+AVERAGE ( 'Mart fact_vessel_call'[berth_delay_hours] )
+```
+
+**Business Purpose**
+
+* Measures vessel scheduling efficiency.
+* Identifies operational delays at berth allocation.
+* Supports service-level monitoring and planning improvements.
+
+---
+
+## Moves Variance %
+
+Measures the variance between actual and planned vessel moves.
+
+```DAX
+Moves Variance % =
+DIVIDE (
+    SUM ( 'Mart fact_vessel_call'[moves_variance] ),
+    SUM ( 'Mart fact_vessel_call'[total_moves_planned] ),
+    0
+)
+```
+
+**Business Purpose**
+
+* Evaluates execution performance against operational plans.
+* Positive values indicate over-performance.
+* Negative values indicate under-performance.
+
+---
+
+# Time Intelligence Measures
+
+## Moves 7-Day Rolling Avg
+
+Calculates the rolling 7-day average of container moves.
+
+```DAX
+Moves 7-Day Rolling Avg =
+AVERAGEX (
+    DATESINPERIOD (
+        'Mart dim_date'[FullDate],
+        LASTDATE ( 'Mart dim_date'[FullDate] ),
+        -7,
+        DAY
+    ),
+    [Total Container Moves]
+)
+```
+
+**Business Purpose**
+
+* Smooths daily operational fluctuations.
+* Helps identify underlying throughput trends.
+* Useful for operational forecasting and performance monitoring.
+
+---
+
+## Moves YoY %
+
+Calculates Year-over-Year growth in container moves.
+
+```DAX
+Moves YoY % =
+VAR CurrentMoves =
+    [Total Container Moves]
+
+VAR PreviousMoves =
+    CALCULATE (
+        [Total Container Moves],
+        SAMEPERIODLASTYEAR ( 'Mart dim_date'[FullDate] )
+    )
+
+RETURN
+    DIVIDE (
+        CurrentMoves - PreviousMoves,
+        PreviousMoves,
+        0
+    )
+```
+
+**Business Purpose**
+
+* Measures annual growth or decline in terminal activity.
+* Supports executive-level performance reporting.
+* Enables long-term operational trend analysis.
+
+---
+
+## Turnaround Bucket
+
+Classifies truck turnaround time into performance bands to support operational segmentation and SLA analysis.
+
+```DAX id="tbk001"
+Turnaround Bucket =
+SWITCH (
+    TRUE(),
+    'Mart fact_gate_transaction'[turnaround_minutes] < 30, "0-30",
+    'Mart fact_gate_transaction'[turnaround_minutes] < 60, "30-60",
+    'Mart fact_gate_transaction'[turnaround_minutes] < 90, "60-90",
+    "90+"
+)
+```
+
+**Business Purpose**
+
+* Segments gate transactions based on service time performance.
+* Helps identify congestion levels and operational efficiency tiers.
+* Useful for SLA reporting and bottleneck analysis.
+
+**Interpretation**
+
+* `0–30 min` → Excellent turnaround performance
+* `30–60 min` → Acceptable operational range
+* `60–90 min` → Delayed processing
+* `90+ min` → Severe congestion / inefficiency
+
+
 
 **Technical Note**
 
